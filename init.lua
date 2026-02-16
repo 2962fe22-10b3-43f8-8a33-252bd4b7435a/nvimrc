@@ -27,7 +27,6 @@ vim.opt.undofile = true
 vim.opt.undodir = (os.getenv 'HOME' or os.getenv 'HOMEPATH') .. '/.vim/undodir'
 vim.opt.wildignorecase = true
 vim.opt.ignorecase = true
-
 vim.opt.smartcase = true
 vim.opt.signcolumn = 'no'
 vim.opt.list = true
@@ -47,7 +46,6 @@ end
 local grep = function() vim.ui.input({ prompt = 'grep>' },
   function(c) if c then vim.cmd('silent grep '..c..' | copen 6')
 end end) end
-
 local scratch = function()
   vim.ui.input({prompt='sh>'}, function(c)
       if c and c~="" then
@@ -63,7 +61,6 @@ vim.filetype.add {
     vert = 'glsl',
     comp = 'glsl',
     ua = 'uiua',
-    comp = 'cpp',
     ixx = 'cpp',
     cppm = 'cpp',
     xaml = 'xml',
@@ -87,25 +84,18 @@ vim.api.nvim_create_autocmd({'InsertLeave', 'TextChanged'}, {
         and #vim.api.nvim_buf_get_name(0) ~= 0
         and vim.bo.buflisted
         and vim.bo.buftype ~= 'terminal' then
-      vim.cmd 'silent w'
+      vim.cmd 'lockmarks silent w'
     end
   end
 })
 
 -- key('n', '<C-c>', 'ciw')
 -- key('n', '<leader><leader>', '<leader>', { remap = true })
--- key('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
--- key('n', '<leader>n', ':bn<CR>')
--- key('n', '<leader>p', ':bp<CR>')
--- key('n', '<leader>u', vim.cmd.UndotreeToggle, { desc = 'Open [U]ndotree' })
--- key('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
--- key('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagnostic message' })
--- key('v', 'J', ":m '>+1<CR>gv=gv")
--- key('v', 'K', ":m '<-2<CR>gv=gv")
 -- key({ 'n', 'v' }, 'cc', 'c', {remap=true})
+-- key('n', '<C-d>', '20<C-d>')
 key('i', '{<CR>', '{<CR>}<Esc>O')
-key('n', '-', ':Oil<CR>', { desc = 'Open file explorer' })
-key('n', '<C-g>', '2<C-g>', { desc = 'File location info' })
+key('n', '-', ':Oil<CR>')
+key('n', '<C-g>', '2<C-g>')
 key('n', '<C-w><C-s>', '<C-w>s<C-w>j')
 key('n', '<C-w><C-v>', '<C-w>v<C-w>l')
 key('n', '<Down>', ':cclose<CR>')
@@ -113,28 +103,25 @@ key('n', '<Left>', ':cp<CR>')
 key('n', '<Right>', ':cn<CR>')
 key('n', '<Up>', ':copen 6<CR>')
 key('n', '<Esc>', ':nohl<CR>')
-key('n', '<leader>`', ':bel 16sp +term<CR>a', { desc = 'Open terminal window' })
-key('n', '<leader>j', ':silent !jj new<CR>')
+key('n', '<leader>`', ':bel 16sp +term<CR>a')
+key('n', '<leader>b', ':ls<CR>:b ')
 key('n', '<leader>f', grep)
+key('n', '<leader>j', ':silent !jj new<CR>')
 key('n', '<leader>m', ':silent make<CR>')
 key('n', '<leader>n', ':e $MYVIMRC<CR>')
 key('n', '<leader>p', toggle_autosave)
-key('n', '<leader>q', vim.diagnostic.setqflist)
 key('n', '<leader>s', scratch)
-key('n', '<leader>w', ':set nu!  rnu!<CR>')
-key('n', '\\', ':cgetbuffer | bd | copen 6<CR>', { desc = 'buf to quickfix' })
+key('n', '<leader>w', ':set nu! rnu!<CR>')
+key('n', '\\', ':cgetbuffer | bd | copen 6<CR>', { desc = 'Send buf to quickfix' })
 key('n', 'cd', ':cd %:p:h<CR>')
 key('n', 'gy', '`[v`]')
-key('t', '<Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
-key('v', 'gp', 'ygvgcP', { remap = true })
+key('t', '<Esc>', '<C-\\><C-n>')
 key('v', '<C-n>', ':norm ')
 key('v', 'p', '"_dP')
 key( { 'i', 'n', 'v' }, '<C-s>',
-  [[<Esc><cmd>if v:this_session != ""
-      wa<Bar>exe "mks!" . v:this_session
-      else
-      wa
-      endif<CR>]],
+  [[<Esc>:wa | if v:this_session != ""
+      exe "mks!" . v:this_session
+      endif<CR><CR>]],
   { desc = '[S]ave all files and session if present' }
 )
 
@@ -152,10 +139,10 @@ end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
 local plugins = {
-  '2962fe22-10b3-43f8-8a33-252bd4b7435a/prasiolite',
+  { '2962fe22-10b3-43f8-8a33-252bd4b7435a/prasiolite', branch = 'dev' },
   -- 'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
   'numToStr/Comment.nvim',
-  -- 'norcalli/nvim-colorizer.lua',
+  'norcalli/nvim-colorizer.lua',
   {
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
@@ -169,13 +156,6 @@ local plugins = {
             local ok, stat = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
             if ok and stat and stat.size > 102400 then return true end end
         },
-        incremental_selection = {
-          enable = true,
-          keymaps = {
-            node_incremental = 'v',
-            node_decremental = 'V',
-          },
-        },
       }
       require('nvim-treesitter.install').compilers = { 'clang', 'zig' }
     end,
@@ -186,20 +166,18 @@ local plugins = {
     ---@type oil.SetupOpts
     opts = {
       keymaps = {
-        ["g?"] = "actions.show_help",
-        ["<CR>"] = "actions.select",
-        -- ["<C-s>"] = { "actions.select", opts = { vertical = true, split = "belowright" }, desc = "Open the entry in a vertical split" },
-        ["<C-h>"] = { "actions.select", opts = { horizontal = true, split = "belowright" }, desc = "Open the entry in a horizontal split" },
-        ["<C-t>"] = { "actions.select", opts = { tab = true }, desc = "Open the entry in new tab" },
+        ["g?"]    = "actions.show_help",
+        ["<CR>"]  = "actions.select",
+        ["<C-h>"] = { "actions.select", opts = { horizontal = true, split = "belowright" } },
+        ["<C-t>"] = { "actions.select", opts = { tab = true } },
         ["<Esc>"] = "actions.close",
         ["<C-r>"] = "actions.refresh",
-        ["-"] = "actions.parent",
-        ["_"] = "actions.open_cwd",
-        ["cd"] = "actions.cd",
-        ["gs"] = "actions.change_sort",
-        ["gx"] = "actions.open_external",
-        ["g."] = "actions.toggle_hidden",
-        ["g\\"] = "actions.toggle_trash",
+        ["-"]     = "actions.parent",
+        ["_"]     = "actions.open_cwd",
+        ["cd"]    = "actions.cd",
+        ["gs"]    = "actions.change_sort",
+        ["gx"]    = "actions.open_external",
+        ["g."]    = "actions.toggle_hidden",
       },
       skip_confirm_for_simple_edits = true,
       preview_split = "above",
