@@ -48,11 +48,11 @@ local grep = function() vim.ui.input({ prompt = 'grep>' },
 end end) end
 local scratch = function()
   vim.ui.input({prompt='sh>'}, function(c)
-      if c and c~="" then
-        vim.cmd "noswapfile vnew"
-        vim.bo.buftype = "nofile"
-        vim.bo.bufhidden = "wipe"
-        vim.api.nvim_buf_set_lines(0, 0, -1, false, vim.fn.systemlist(c))
+    if c and c~="" then
+      vim.cmd "noswapfile vnew"
+      vim.bo.buftype = "nofile"
+      vim.bo.bufhidden = "wipe"
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, vim.fn.systemlist(c))
 end end) end
 
 vim.filetype.add {
@@ -74,8 +74,7 @@ vim.filetype.add {
 local autosave_enabled = false
 local toggle_autosave = function()
   autosave_enabled = not autosave_enabled vim.cmd'w'
-  vim.notify('autosave = ' .. tostring(autosave_enabled))
-end
+  vim.notify('autosave = ' .. tostring(autosave_enabled)) end
 vim.api.nvim_create_autocmd('TextYankPost',
   { callback = function() vim.highlight.on_yank() end})
 vim.api.nvim_create_autocmd({'InsertLeave', 'TextChanged'}, {
@@ -84,10 +83,7 @@ vim.api.nvim_create_autocmd({'InsertLeave', 'TextChanged'}, {
         and #vim.api.nvim_buf_get_name(0) ~= 0
         and vim.bo.buflisted
         and vim.bo.buftype ~= 'terminal' then
-      vim.cmd 'lockmarks silent w'
-    end
-  end
-})
+      vim.cmd 'lockmarks silent w' end end })
 
 -- key('n', '<C-c>', 'ciw')
 -- key('n', '<leader><leader>', '<leader>', { remap = true })
@@ -122,73 +118,43 @@ key( { 'i', 'n', 'v' }, '<C-s>',
   [[<Esc>:wa | if v:this_session != ""
       exe "mks!" . v:this_session
       endif<CR><CR>]],
-  { desc = '[S]ave all files and session if present' }
-)
+  { desc = '[S]ave all files and session if present' })
 
 -------- PLUGINS --------
 
--- See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
-local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
-if not (vim.uv or vim.loop).fs_stat(lazypath) then
-  local lazyrepo = 'https://github.com/folke/lazy.nvim.git'
-  local out = vim.fn.system { 'git', 'clone', '--filter=blob:none', '--branch=stable', lazyrepo, lazypath }
-  if vim.v.shell_error ~= 0 then
-    error('Error cloning lazy.nvim:\n' .. out)
-  end
-end ---@diagnostic disable-next-line: undefined-field
-vim.opt.rtp:prepend(lazypath)
-
-local plugins = {
-  { '2962fe22-10b3-43f8-8a33-252bd4b7435a/prasiolite', branch = 'dev' },
-  -- 'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-  'numToStr/Comment.nvim',
-  'norcalli/nvim-colorizer.lua',
-  {
-    'nvim-treesitter/nvim-treesitter',
-    build = ':TSUpdate',
-    config = function()
-      -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-      ---@diagnostic disable-next-line: missing-fields
-      require('nvim-treesitter.configs').setup {
-        ensure_installed = { 'bash', 'c', 'cpp', 'html', 'lua', 'markdown', 'vim', 'vimdoc', },
-        highlight = {
-          enable = true, disable = function(lang, buf)
-            local ok, stat = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-            if ok and stat and stat.size > 102400 then return true end end
-        },
-      }
-      require('nvim-treesitter.install').compilers = { 'clang', 'zig' }
-    end,
-  },
-  {
-    'stevearc/oil.nvim',
-    ---@module 'oil'
-    ---@type oil.SetupOpts
-    opts = {
-      keymaps = {
-        ["g?"]    = "actions.show_help",
-        ["<CR>"]  = "actions.select",
-        ["<C-h>"] = { "actions.select", opts = { horizontal = true, split = "belowright" } },
-        ["<C-t>"] = { "actions.select", opts = { tab = true } },
-        ["<Esc>"] = "actions.close",
-        ["<C-r>"] = "actions.refresh",
-        ["-"]     = "actions.parent",
-        ["_"]     = "actions.open_cwd",
-        ["cd"]    = "actions.cd",
-        ["gs"]    = "actions.change_sort",
-        ["gx"]    = "actions.open_external",
-        ["g."]    = "actions.toggle_hidden",
-      },
-      skip_confirm_for_simple_edits = true,
-      preview_split = "above",
-      view_options = { show_hidden = true, }
-    }
-  },
-}
-require("lazy").setup {
-  spec = plugins
-  -- checker = { enabled = true }, -- automatically check for plugin updates
-}
+vim.pack.add({
+  { src = 'https://github.com/2962fe22-10b3-43f8-8a33-252bd4b7435a/prasiolite', version = 'dev' },
+  'https://github.com/numToStr/Comment.nvim',
+  -- 'https://github.com/norcalli/nvim-colorizer.lua',
+  { src = 'https://github.com/nvim-treesitter/nvim-treesitter', version = 'main' },
+  'https://github.com/stevearc/oil.nvim',
+})
 
 vim.cmd "colorscheme prasiodark"
+require('Comment').setup({})
+require('nvim-treesitter.config').setup({
+  ensure_installed = { 'bash', 'c', 'cpp', 'html', 'lua', 'markdown', 'vim', 'vimdoc', },
+  highlight = { enable = true, disable = function(lang, buf)
+    local ok, stat = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+    if ok and stat and stat.size > 102400 then return true end end }})
+require('nvim-treesitter.install').compilers = { 'clang' }
+require('oil').setup({
+  keymaps = {
+    ["g?"]    = "actions.show_help",
+    ["<CR>"]  = "actions.select",
+    ["<C-h>"] = { "actions.select", opts = { horizontal = true, split = "belowright" } },
+    ["<C-t>"] = { "actions.select", opts = { tab = true } },
+    ["<Esc>"] = "actions.close",
+    ["<C-r>"] = "actions.refresh",
+    ["-"]     = "actions.parent",
+    ["_"]     = "actions.open_cwd",
+    ["cd"]    = "actions.cd",
+    ["gs"]    = "actions.change_sort",
+    ["gx"]    = "actions.open_external",
+    ["g."]    = "actions.toggle_hidden",
+  },
+  skip_confirm_for_simple_edits = true,
+  preview_split = "above",
+  view_options = { show_hidden = true }})
+
 -- vim: ts=2
