@@ -16,7 +16,7 @@ vim.cmd 'language en_US'
 vim.opt.updatetime = 250
 vim.opt.timeoutlen = 300
 vim.opt.colorcolumn = '80'
-vim.opt.mouse = ''
+vim.opt.mouse = 'a'
 vim.cmd 'set mousescroll=ver:8,hor:4'
 vim.opt.showmode = false
 vim.opt.swapfile = false
@@ -30,7 +30,7 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.opt.signcolumn = 'no'
 vim.opt.list = true
-vim.opt.listchars = { tab = '| ', trail = '·', nbsp = '␣' }
+vim.opt.listchars = { tab = '| ', trail = '√°', nbsp = '?' }
 vim.opt.inccommand = 'split'
 vim.opt.hlsearch = true
 vim.opt.scrolloff = 8
@@ -91,7 +91,9 @@ vim.api.nvim_create_autocmd({'InsertLeave', 'TextChanged'}, {
 -- key('n', '<C-d>', '20<C-d>')
 key('i', '{<CR>', '{<CR>}<Esc>O')
 key('n', '-', ':Oil<CR>')
+key('n', '<C-b>', ':ls<CR>:b ')
 key('n', '<C-g>', '2<C-g>')
+key('v', '<C-n>', ':norm ')
 key('n', '<C-w><C-s>', '<C-w>s<C-w>j')
 key('n', '<C-w><C-v>', '<C-w>v<C-w>l')
 key('n', '<Down>', ':cclose<CR>')
@@ -100,7 +102,6 @@ key('n', '<Right>', ':cn<CR>')
 key('n', '<Up>', ':copen 6<CR>')
 key('n', '<Esc>', ':nohl<CR>')
 key('n', '<leader>`', ':bel 16sp +term<CR>a')
-key('n', '<leader>b', ':ls<CR>:b ')
 key('n', '<leader>f', grep)
 key('n', '<leader>j', ':silent !jj new<CR>')
 key('n', '<leader>m', ':silent make<CR>')
@@ -112,8 +113,12 @@ key('n', '\\', ':cgetbuffer | bd | copen 6<CR>', { desc = 'Send buf to quickfix'
 key('n', 'cd', ':cd %:p:h<CR>')
 key('n', 'gy', '`[v`]')
 key('t', '<Esc>', '<C-\\><C-n>')
-key('v', '<C-n>', ':norm ')
 key('v', 'p', '"_dP')
+key({'n','v'}, '<C-/>', ':norm 0i// <CR>')
+key({'n','v'}, '<C-3>', ':norm 0i# <CR>')
+key({'n','v'}, '<C-x>', ':norm ^x<CR>')
+key('v', 'g/', "<Esc>'<O <C-u>#if 0<Esc>'>o <C-u>#endif<Esc>")
+-- '<,'>s;^\(\s*\)// \?;\1
 key( { 'i', 'n', 'v' }, '<C-s>',
   [[<Esc>:wa | if v:this_session != ""
       exe "mks!" . v:this_session
@@ -124,14 +129,11 @@ key( { 'i', 'n', 'v' }, '<C-s>',
 
 vim.pack.add({
   { src = 'https://github.com/2962fe22-10b3-43f8-8a33-252bd4b7435a/prasiolite', version = 'dev' },
-  'https://github.com/numToStr/Comment.nvim',
   -- 'https://github.com/norcalli/nvim-colorizer.lua',
   { src = 'https://github.com/nvim-treesitter/nvim-treesitter', version = 'main' },
   'https://github.com/stevearc/oil.nvim',
 })
 
-vim.cmd "colorscheme prasiodark"
-require('Comment').setup({})
 require('nvim-treesitter.config').setup({
   ensure_installed = { 'bash', 'c', 'cpp', 'html', 'lua', 'markdown', 'vim', 'vimdoc', },
   highlight = { enable = true, disable = function(lang, buf)
@@ -157,4 +159,5 @@ require('oil').setup({
   preview_split = "above",
   view_options = { show_hidden = true }})
 
+vim.cmd "colorscheme prasiodark"
 -- vim: ts=2
